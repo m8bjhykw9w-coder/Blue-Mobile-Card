@@ -152,7 +152,7 @@ export const ThermalReceiptView: React.FC<ThermalReceiptViewProps> = ({
           {/* 4. Company / Provider Name */}
           <div
             dir="rtl"
-            className="text-right font-bold leading-snug text-black"
+            className="text-center font-bold leading-snug text-black"
             style={{
               fontSize: `${3.1 * scaleMult}mm`,
               marginBottom: '1.7mm',
@@ -165,7 +165,7 @@ export const ThermalReceiptView: React.FC<ThermalReceiptViewProps> = ({
           {/* 5 & 7. Card Denomination + Currency (د.ل) */}
           <div
             dir="rtl"
-            className="text-right font-bold leading-snug text-black"
+            className="text-center font-bold leading-snug text-black"
             style={{
               fontSize: `${3.1 * scaleMult}mm`,
               marginBottom: '1.9mm',
@@ -178,7 +178,7 @@ export const ThermalReceiptView: React.FC<ThermalReceiptViewProps> = ({
           {/* 6. Card Number / Code Label */}
           <div
             dir="rtl"
-            className="text-right font-bold leading-snug text-black"
+            className="text-center font-bold leading-snug text-black"
             style={{
               fontSize: `${2.95 * scaleMult}mm`,
               marginBottom: '1.2mm',

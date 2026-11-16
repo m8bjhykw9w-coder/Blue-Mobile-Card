@@ -270,30 +270,30 @@ export async function renderReceiptToCanvas(
   // Draw Company Line: "الشركة: ليبيانا"
   ctx.save();
   ctx.direction = 'rtl';
-  ctx.textAlign = 'right';
+  ctx.textAlign = 'center';
   ctx.fillStyle = '#000000';
   ctx.font = `700 ${Math.round(fieldValueFontMm * pxPerMm)}px ${arabicFont}`;
-  ctx.fillText(`الشركة: ${receipt.companyNameAr}`, rightEdgePx, yMm * pxPerMm);
+  ctx.fillText(`الشركة: ${receipt.companyNameAr}`, centerXPx, yMm * pxPerMm);
   ctx.restore();
   yMm += fieldValueFontMm + 2.3;
 
   // Draw Denomination Line: "قيمة الكرت: 10 د.ل"
   ctx.save();
   ctx.direction = 'rtl';
-  ctx.textAlign = 'right';
+  ctx.textAlign = 'center';
   ctx.fillStyle = '#000000';
   ctx.font = `700 ${Math.round(fieldValueFontMm * pxPerMm)}px ${arabicFont}`;
-  ctx.fillText(`قيمة الكرت: ${receipt.denomination} د.ل`, rightEdgePx, yMm * pxPerMm);
+  ctx.fillText(`قيمة الكرت: ${receipt.denomination} د.ل`, centerXPx, yMm * pxPerMm);
   ctx.restore();
   yMm += fieldValueFontMm + 2.5;
 
   // Draw Card Number Label: "رقم الكرت:"
   ctx.save();
   ctx.direction = 'rtl';
-  ctx.textAlign = 'right';
+  ctx.textAlign = 'center';
   ctx.fillStyle = '#000000';
   ctx.font = `700 ${Math.round(fieldLabelFontMm * pxPerMm)}px ${arabicFont}`;
-  ctx.fillText('رقم الكرت:', rightEdgePx, yMm * pxPerMm);
+  ctx.fillText('رقم الكرت:', centerXPx, yMm * pxPerMm);
   ctx.restore();
   yMm += fieldLabelFontMm + 1.5;
 
