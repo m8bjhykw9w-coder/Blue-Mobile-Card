@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-arabic: 'Cairo', 'IBM Plex Sans Arabic', 'Tajawal', system-ui, -apple-system, sans-serif;
+    --font-mono-code: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --print-paper-width: 58mm;
+    --print-right-margin: 15mm;
+  }
+
+  html {
+    font-family: var(--font-arabic);
+    direction: rtl;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: #F5F7FA;
+    color: #0F172A;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+}
+
+.font-cairo {
+  font-family: 'Cairo', system-ui, sans-serif;
+}
+
+.font-tajawal {
+  font-family: 'Tajawal', system-ui, sans-serif;
+}
+
+.font-ibm {
+  font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+}
+
+.font-mono-code {
+  font-family: var(--font-mono-code);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom subtle scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Dedicated Thermal Print Layout Rules */
+@media screen {
+  #thermal-print-mount {
+    display: none;
+  }
+}
+
+@media print {
+  @page {
+    size: var(--print-paper-width, 58mm) auto;
+    margin: 0mm !important;
+  }
+
+  html,
+  body {
+    width: var(--print-paper-width, 58mm) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  #thermal-print-mount {
+    display: block !important;
+    width: var(--print-paper-width, 58mm) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #FFFFFF !important;
+  }
+
+  .thermal-print-page {
+    width: var(--print-paper-width, 58mm) !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    page-break-after: always;
+    break-after: page;
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+
+  .thermal-print-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+}
