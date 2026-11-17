@@ -108,21 +108,7 @@ export function App() {
     } catch {
       // Ignore
     }
-    // Initial sample receipt matching Section 6 specification example
-    const now = new Date();
-    return [
-      {
-        id: 'initial-sample-1',
-        sequenceNumber: 1,
-        companyId: 'libyana',
-        companyNameAr: 'ليبيانا',
-        companyNameEn: 'Libyana',
-        denomination: 10,
-        cardCode: '1234567890123456',
-        createdAt: now.toISOString(),
-        formattedTime: formatArabicTime(now),
-      },
-    ];
+    return [];
   });
 
   useEffect(() => {
@@ -137,7 +123,7 @@ export function App() {
   const [activeReceiptId, setActiveReceiptId] = useState<string | null>(
     () => receipts[0]?.id || null
   );
-  const [previewMode, setPreviewMode] = useState<'live-draft' | 'selected-receipt'>('selected-receipt');
+  const [previewMode, setPreviewMode] = useState<'live-draft' | 'selected-receipt'>('live-draft');
   const [showRenderedPngInspector, setShowRenderedPngInspector] = useState<boolean>(false);
   const [renderedPngPreview, setRenderedPngPreview] = useState<RenderedReceiptResult | null>(null);
 
@@ -219,7 +205,7 @@ export function App() {
       companyNameAr: currentCompany.nameAr,
       companyNameEn: currentCompany.nameEn,
       denomination: selectedDenomination,
-      cardCode: cardCode.length > 0 ? cardCode : '1234567890123456',
+      cardCode: cardCode,
       createdAt: new Date().toISOString(),
       formattedTime: formatArabicTime(new Date()),
     }),
@@ -928,7 +914,7 @@ export function App() {
                   {/* Direct Print */}
                   <button
                     type="button"
-                    disabled={busyAction !== null}
+                    disabled={busyAction !== null || !displayedReceipt.cardCode}
                     onClick={() => handlePrintSingle(displayedReceipt)}
                     className="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
                   >
@@ -939,7 +925,7 @@ export function App() {
                   {/* PNG Export */}
                   <button
                     type="button"
-                    disabled={busyAction !== null}
+                    disabled={busyAction !== null || !displayedReceipt.cardCode}
                     onClick={() => handleDownloadPng(displayedReceipt)}
                     className="py-2.5 px-3 rounded-xl bg-[#0066CC] hover:bg-[#0052A3] text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
                   >
@@ -950,7 +936,7 @@ export function App() {
                   {/* Custom-Size PDF Export */}
                   <button
                     type="button"
-                    disabled={busyAction !== null}
+                    disabled={busyAction !== null || !displayedReceipt.cardCode}
                     onClick={() => handleDownloadPdf(displayedReceipt)}
                     className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
                   >

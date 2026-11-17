@@ -1,7 +1,6 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { ReceiptItem, ReceiptSettings } from '../types/receipt';
 import { BlueMobileLogo } from './BlueMobileLogo';
-import { getFontScaleMultiplier } from '../utils/receiptExport';
 
 interface ThermalReceiptViewProps {
   receipt: ReceiptItem;
@@ -10,258 +9,66 @@ interface ThermalReceiptViewProps {
   scalePreview?: number;
 }
 
-/**
- * Physical 58mm / 57mm Thermal Receipt Component.
- * Uses explicit LTR physical coordinate columns on the outer container:
- * - Left column: (paperWidthMm - rightBlankMarginMm) e.g. 43mm printable area (with RTL Arabic inside)
- * - Right column: rightBlankMarginMm e.g. 15mm strictly empty white space
- */
-export const ThermalReceiptView: React.FC<ThermalReceiptViewProps> = ({
-  receipt,
-  settings,
-  showScreenCalibration = false,
-  scalePreview = 1,
-}) => {
-  const paperWidthMm = settings.paperWidthMm; // 58 or 57
-  const rightBlankMarginMm = Math.max(0, Math.min(25, settings.rightBlankMarginMm)); // 15
-  const printableWidthMm = Math.max(25, paperWidthMm - rightBlankMarginMm); // 43 or 42
+// Fit an exact, unbroken string to the physical content width, without truncation.
+function fitCode(text: string, maxWidthMm: number, maxSizeMm: number): number {
+  if (!text || typeof document === 'undefined') return maxSizeMm;
+  const ctx = document.createElement('canvas').getContext('2d');
+  if (!ctx) return maxSizeMm;
+  const mmToPx = 96 / 25.4;
+  ctx.font = `800 ${maxSizeMm * mmToPx}px monospace`;
+  const width = ctx.measureText(text).width;
+  return width ? Math.min(maxSizeMm, maxSizeMm * maxWidthMm * mmToPx / width * 0.96) : maxSizeMm;
+}
 
-  const scaleMult = getFontScaleMultiplier(settings.fontSizeScale);
+export function rechargeInstruction(receipt: ReceiptItem): string {
+  const prefix = receipt.companyId === 'libyana' ? '120' : receipt.companyId === 'almadar' ? '112' : null;
+  return prefix ? `*${prefix}*${receipt.cardCode}#` : receipt.cardCode;
+}
 
-  // Dynamically calculate single-line font size in mm for the card code
-  // so long codes NEVER wrap or clip inside the 43mm printable column.
-  const codeFontSizeMm = useMemo(() => {
-    const baseMm = 3.45 * scaleMult;
-    const len = Math.max(1, receipt.cardCode.length);
-    const availableWidthMm = printableWidthMm - 4.4; // minus inner padding & border
-    // Approx width per monospace char is ~0.62 * fontSizeMm
-    const estimatedWidthMm = len * (baseMm * 0.62);
-    if (estimatedWidthMm <= availableWidthMm) {
-      return baseMm;
-    }
-    const scaled = availableWidthMm / (len * 0.62);
-    return Math.max(1.45, Math.min(baseMm, scaled));
-  }, [receipt.cardCode, printableWidthMm, scaleMult]);
-
-  const fontFamilyStyle = `'${settings.fontFamily}', 'Cairo', sans-serif`;
-
-  return (
-    <div
-      className="inline-block select-none"
-      style={{
-        transform: scalePreview !== 1 ? `scale(${scalePreview})` : undefined,
-        transformOrigin: 'top center',
-      }}
-    >
-      {/* Screen-only millimeter ruler header when calibration is active */}
-      {showScreenCalibration && (
-        <div
-          dir="ltr"
-          className="no-print mb-1.5 grid text-[10px] font-mono-code font-bold tracking-tight"
-          style={{
-            width: `${paperWidthMm}mm`,
-            gridTemplateColumns: `${printableWidthMm}mm ${rightBlankMarginMm}mm`,
-          }}
-        >
-          <div className="bg-[#0066CC]/10 text-[#0066CC] border-b-2 border-[#0066CC] py-0.5 text-center">
-            {printableWidthMm}mm (Print)
-          </div>
-          <div className="bg-amber-500/15 text-amber-800 border-b-2 border-amber-500 py-0.5 text-center">
-            {rightBlankMarginMm}mm (Blank)
-          </div>
-        </div>
-      )}
-
-      {/* Physical Thermal Paper Sheet (dir="ltr" so Left = Printable 43mm, Right = Blank 15mm) */}
-      <div
-        dir="ltr"
-        style={{
-          width: `${paperWidthMm}mm`,
-          gridTemplateColumns: `${printableWidthMm}mm ${rightBlankMarginMm}mm`,
-          backgroundColor: '#FFFFFF',
-          color: '#000000',
-          fontFamily: fontFamilyStyle,
-        }}
-        className="grid relative bg-white text-black overflow-hidden"
-      >
-        {/* LEFT COLUMN: Printable Content Zone (43mm for 58mm paper, 42mm for 57mm paper) */}
-        <div
-          dir="rtl"
-          style={{
-            width: `${printableWidthMm}mm`,
-            maxWidth: `${printableWidthMm}mm`,
-            paddingLeft: '1.8mm',
-            paddingRight: '1.8mm',
-            paddingTop: '3.2mm',
-            paddingBottom: '3.2mm',
-            boxSizing: 'border-box',
-            backgroundColor: '#FFFFFF',
-            color: '#000000',
-          }}
-          className="overflow-hidden flex flex-col items-stretch"
-        >
-          {/* 1. Blue Mobile Custom Monochrome Logo */}
-          {settings.showLogo && (
-            <div className="flex justify-center mb-[1.6mm]">
-              <BlueMobileLogo
-                variant={settings.logoVariant}
-                customLogoDataUrl={settings.customLogoDataUrl}
-                monochrome={true}
-                size={38}
-              />
+export const ThermalReceiptView: React.FC<ThermalReceiptViewProps> = ({ receipt, settings, showScreenCalibration = false, scalePreview = 1 }) => {
+  const paper = settings.paperWidthMm;
+  const blank = Math.max(0, Math.min(25, settings.rightBlankMarginMm));
+  const width = paper - blank;
+  const scale = settings.fontSizeScale === 'sm' ? 0.9 : settings.fontSizeScale === 'lg' ? 1.12 : 1;
+  const content = width - 5.8;
+  const codeSize = fitCode(receipt.cardCode, content - 2, 5.6 * scale);
+  const instruction = receipt.cardCode ? rechargeInstruction(receipt) : '—';
+  const prefix = receipt.companyId === 'libyana' ? '120' : receipt.companyId === 'almadar' ? '112' : null;
+  const instructionSize = fitCode(instruction, content - 2, 2.9 * scale);
+  const font = `'${settings.fontFamily}', 'Cairo', sans-serif`;
+  const separator: React.CSSProperties = {borderTop: '0.25mm dashed #000', margin: '3mm 0'};
+  const small: React.CSSProperties = {fontSize: `${2.65 * scale}mm`, lineHeight: 1.9};
+  return <div style={{display:'inline-block', transform: scalePreview !== 1 ? `scale(${scalePreview})` : undefined, transformOrigin:'top center'}}>
+    {showScreenCalibration && <div dir="ltr" className="no-print" style={{width:`${paper}mm`,display:'grid',gridTemplateColumns:`${width}mm ${blank}mm`,font:'bold 10px monospace',textAlign:'center'}}><div>{width}mm (Print)</div><div>{blank}mm (Blank)</div></div>}
+    <div dir="ltr" style={{width:`${paper}mm`,display:'grid',gridTemplateColumns:`${width}mm ${blank}mm`,background:'#fff',color:'#000',fontFamily:font}}>
+      <div dir="rtl" style={{boxSizing:'border-box',width:`${width}mm`,padding:'1mm',background:'#fff',color:'#000'}}>
+        <div style={{border:'0.35mm solid #000',borderRadius:'2.3mm',padding:'1mm',textAlign:'center',boxSizing:'border-box'}}>
+          <div style={{border:'0.2mm dashed #000',borderRadius:'1.6mm',padding:'2mm 1.5mm',boxSizing:'border-box'}}>
+            {settings.showLogo && <div style={{display:'flex',justifyContent:'center',marginBottom:'0.8mm'}}><BlueMobileLogo variant={settings.logoVariant} customLogoDataUrl={settings.customLogoDataUrl} monochrome size={28}/></div>}
+            <div dir="auto" style={{fontSize:`${3.5*scale}mm`,fontWeight:900,lineHeight:1.6,overflowWrap:'anywhere'}}>{receipt.companyNameAr} <span style={{fontSize:'0.7em'}}>| {receipt.companyNameEn.toUpperCase()}</span></div>
+            <div style={{fontSize:`${2.9*scale}mm`,fontWeight:800,lineHeight:1.8,marginTop:'1mm'}}>بطاقة إعادة شحن الرصيد</div>
+            <div style={separator}/>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-around',gap:'1mm'}}>
+              <span style={{fontSize:`${2.65*scale}mm`,fontWeight:800}}>قيمة الرصيد</span>
+              <span dir="ltr" style={{fontSize:`${5.1*scale}mm`,fontWeight:900,lineHeight:1.2,whiteSpace:'nowrap'}}>{Number(receipt.denomination).toFixed(2)} <span dir="rtl" style={{fontSize:'0.5em'}}>د.ل</span></span>
             </div>
-          )}
-
-          {/* 2. Store Name */}
-          <div
-            dir="ltr"
-            className="text-center font-extrabold leading-tight tracking-tight text-black break-words"
-            style={{
-              fontSize: `${3.65 * scaleMult}mm`,
-              marginBottom: '1.1mm',
-            }}
-          >
-            {settings.storeName || 'Blue Mobile'}
+            <div style={separator}/>
+            <div style={{fontSize:`${2.9*scale}mm`,fontWeight:800,lineHeight:1.8,marginBottom:'1.5mm'}}>رقم بطاقة التعبئة</div>
+            <div dir="ltr" style={{border:'0.3mm dashed #000',borderRadius:'2mm',padding:'2mm 0.5mm',textAlign:'center',fontFamily:'monospace',fontSize:`${codeSize}mm`,fontWeight:900,lineHeight:1.25,whiteSpace:'pre',boxSizing:'border-box'}}>{receipt.cardCode}</div>
+            <div style={{fontSize:`${3*scale}mm`,fontWeight:900,lineHeight:1.8,margin:'2.2mm 0 0.8mm'}}>طريقة إعادة التعبئة</div>
+            <div style={small}>{receipt.companyId === 'libyana' || receipt.companyId === 'almadar' ? 'لإعادة شحن رصيدك، أدخل الرمز التالي من هاتفك:' : 'استخدم رقم بطاقة التعبئة التالي:'}</div>
+            {prefix && <div dir="ltr" style={{...small,fontWeight:800}}>‎*{prefix}*<span dir="rtl">رقم الكرت</span>#</div>}
+            <div dir="ltr" style={{border:'0.3mm solid #000',borderRadius:'1.6mm',padding:'1.5mm 0.5mm',marginTop:'1mm',fontFamily:'monospace',fontWeight:800,fontSize:`${instructionSize}mm`,whiteSpace:'pre',lineHeight:1.3}}>{instruction}</div>
+            <div style={separator}/>
+            <div aria-hidden="true" style={{fontSize:'5mm',lineHeight:1}}>♡</div>
+            <div style={{fontSize:`${3*scale}mm`,fontWeight:900,lineHeight:1.8,marginTop:'0.7mm'}}>شكراً لاختياركم خدماتنا</div>
+            <div style={{...small,marginTop:'1mm'}}>يرجى الاحتفاظ بهذا الإيصال حتى إتمام عملية التعبئة.</div>
+            <div style={{...small,borderTop:'0.2mm solid #000',marginTop:'1mm',paddingTop:'1mm'}}>يرجى التأكد من الرقم قبل الاستخدام.</div>
+            {(settings.storeName || settings.storeAddress || settings.thankYouMessage) && <div style={{...small,borderTop:'0.2mm dashed #000',marginTop:'1mm',paddingTop:'1mm'}}><div dir="auto">{settings.storeName}</div><div>{settings.storeAddress}</div><div>{settings.thankYouMessage}</div></div>}
           </div>
-
-          {/* 3. Store Address */}
-          {settings.storeAddress.trim() && (
-            <div
-              dir="rtl"
-              className="text-center font-bold leading-snug text-black"
-              style={{
-                fontSize: `${2.65 * scaleMult}mm`,
-                marginBottom: '1.4mm',
-              }}
-            >
-              {settings.storeAddress}
-            </div>
-          )}
-
-          {/* Top Separator (strictly inside 43mm printable zone) */}
-          <div
-            style={{
-              height: '0.35mm',
-              backgroundColor: '#000000',
-              width: '100%',
-              marginTop: '0.7mm',
-              marginBottom: '1.8mm',
-            }}
-          />
-
-          {/* 4. Company / Provider Name */}
-          <div
-            dir="rtl"
-            className="text-center font-bold leading-snug text-black"
-            style={{
-              fontSize: `${3.1 * scaleMult}mm`,
-              marginBottom: '1.7mm',
-            }}
-          >
-            <span>الشركة: </span>
-            <span className="font-extrabold">{receipt.companyNameAr}</span>
-          </div>
-
-          {/* 5 & 7. Card Denomination + Currency (د.ل) */}
-          <div
-            dir="rtl"
-            className="text-center font-bold leading-snug text-black"
-            style={{
-              fontSize: `${3.1 * scaleMult}mm`,
-              marginBottom: '1.9mm',
-            }}
-          >
-            <span>قيمة الكرت: </span>
-            <span className="font-extrabold">{receipt.denomination} د.ل</span>
-          </div>
-
-          {/* 6. Card Number / Code Label */}
-          <div
-            dir="rtl"
-            className="text-center font-bold leading-snug text-black"
-            style={{
-              fontSize: `${2.95 * scaleMult}mm`,
-              marginBottom: '1.2mm',
-            }}
-          >
-            رقم الكرت:
-          </div>
-
-          {/* 6. Card Number / Code Single-Line Box (LTR, never wraps, exact characters preserved) */}
-          <div
-            dir="ltr"
-            style={{
-              border: '0.3mm solid #000000',
-              paddingTop: '1.2mm',
-              paddingBottom: '1.2mm',
-              paddingLeft: '1mm',
-              paddingRight: '1mm',
-              marginBottom: '2.0mm',
-              backgroundColor: '#FFFFFF',
-            }}
-            className="w-full flex items-center justify-center overflow-hidden"
-          >
-            <span
-              dir="ltr"
-              className="font-mono-code font-extrabold text-black whitespace-nowrap leading-none text-center block"
-              style={{
-                fontSize: `${codeFontSizeMm}mm`,
-                letterSpacing: '0px',
-              }}
-            >
-              {receipt.cardCode}
-            </span>
-          </div>
-
-          {/* 8. Clean Bottom Separator */}
-          <div
-            style={{
-              height: '0.35mm',
-              backgroundColor: '#000000',
-              width: '100%',
-              marginTop: '0.4mm',
-              marginBottom: '1.8mm',
-            }}
-          />
-
-          {/* 9. Short Thank-You Message */}
-          {settings.thankYouMessage.trim() && (
-            <div
-              dir="rtl"
-              className="text-center font-bold leading-snug text-black"
-              style={{
-                fontSize: `${2.65 * scaleMult}mm`,
-              }}
-            >
-              {settings.thankYouMessage}
-            </div>
-          )}
-        </div>
-
-        {/* RIGHT COLUMN: Mandatory 15mm Blank Space (100% empty in export/print) */}
-        <div
-          style={{
-            width: `${rightBlankMarginMm}mm`,
-            minWidth: `${rightBlankMarginMm}mm`,
-            maxWidth: `${rightBlankMarginMm}mm`,
-            backgroundColor: '#FFFFFF',
-          }}
-          className="relative"
-          aria-hidden="true"
-        >
-          {/* Screen-only visual calibration overlay (NEVER present in PNG, PDF, or Print) */}
-          {showScreenCalibration && rightBlankMarginMm > 0 && (
-            <div
-              className="no-print absolute inset-0 border-l border-dashed border-amber-500/70 bg-amber-50/40 flex items-center justify-center pointer-events-none"
-              title="منطقة الهامش الأيمن الفارغ المخصصة لمعايرة الطابعة الحرارية (لا يظهر هذا التظليل عند الطباعة أو التصدير)"
-            >
-              <span className="-rotate-90 whitespace-nowrap text-[9px] font-bold text-amber-800/80 tracking-wide">
-                هامش أيمن فارغ ({rightBlankMarginMm}mm)
-              </span>
-            </div>
-          )}
         </div>
       </div>
+      <div aria-hidden="true" style={{width:`${blank}mm`,background:'#fff',position:'relative'}}>{showScreenCalibration && blank > 0 && <div className="no-print" style={{position:'absolute',inset:0,borderLeft:'1px dashed #000',fontSize:'8px'}}>هامش فارغ</div>}</div>
     </div>
-  );
+  </div>;
 };
