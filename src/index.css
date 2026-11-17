@@ -7,7 +7,7 @@
     --font-arabic: 'Cairo', 'IBM Plex Sans Arabic', 'Tajawal', system-ui, -apple-system, sans-serif;
     --font-mono-code: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     --print-paper-width: 58mm;
-    --print-right-margin: 15mm;
+    --print-right-margin: 18mm;
   }
 
   html {

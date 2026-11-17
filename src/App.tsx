@@ -43,6 +43,7 @@ import {
 
 const SETTINGS_STORAGE_KEY = 'blue_mobile_receipt_settings_v1';
 const SESSION_RECEIPTS_STORAGE_KEY = 'blue_mobile_session_receipts_v1';
+const MARGIN_MIGRATION_KEY = 'blue_mobile_margin_plus_3_v1';
 
 function formatArabicTime(date: Date): string {
   try {
@@ -63,11 +64,21 @@ export function App() {
       const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        return { ...DEFAULT_SETTINGS, ...parsed };
+        const next = { ...DEFAULT_SETTINGS, ...parsed };
+        // Existing users get the requested extra 3mm once; new users start at 18mm.
+        if (!localStorage.getItem(MARGIN_MIGRATION_KEY)) {
+          if (typeof parsed.rightBlankMarginMm === 'number') {
+            next.rightBlankMarginMm = Math.min(25, Math.max(0, parsed.rightBlankMarginMm + 3));
+          }
+          localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(next));
+          localStorage.setItem(MARGIN_MIGRATION_KEY, '1');
+        }
+        return next;
       }
     } catch {
       // Ignore storage error
     }
+    try { localStorage.setItem(MARGIN_MIGRATION_KEY, '1'); } catch { /* storage unavailable */ }
     return DEFAULT_SETTINGS;
   });
 
@@ -465,7 +476,7 @@ export function App() {
                   showCalibrationGuidesOnScreen: !prev.showCalibrationGuidesOnScreen,
                 }))
               }
-              title="إظهار أو إخفاء مسطرة معايرة الهامش الأيمن الفارغ (15mm) على الشاشة"
+              title="إظهار أو إخفاء مسطرة معايرة الهامش الأيمن الفارغ على الشاشة"
               className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                 settings.showCalibrationGuidesOnScreen
                   ? 'bg-amber-50 border-amber-300 text-amber-900'
@@ -844,10 +855,10 @@ export function App() {
                         ? 'bg-amber-100/80 border-amber-400 text-amber-900'
                         : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
                     }`}
-                    title="إظهار مسطرة الـ 15mm الفارغة على الشاشة فقط للتأكد من القياسات"
+                    title="إظهار مسطرة الهامش الفارغ على الشاشة فقط للتأكد من القياسات"
                   >
                     <Ruler className="w-3 h-3" />
-                    <span>مسطرة 15mm</span>
+                    <span>مسطرة {settings.rightBlankMarginMm}mm</span>
                   </button>
 
                   <button
@@ -885,7 +896,7 @@ export function App() {
                       />
                     </div>
                     <span className="text-[11px] font-bold text-slate-600 text-center max-w-xs">
-                      هذه هي الصورة الحرارية النهائية (أبيض وأسود خالص مع 15mm فراغ أيمن تام).
+                      هذه هي الصورة الحرارية النهائية (أبيض وأسود خالص مع {settings.rightBlankMarginMm}mm فراغ أيمن تام).
                     </span>
                   </div>
                 ) : (
@@ -1173,7 +1184,7 @@ export function App() {
             {settings.storeName} — {settings.storeAddress}
           </div>
           <div>
-            مُصمم خصيصاً لطابعات الإيصالات الحرارية مقاس 58mm و 57mm (مع حجز 15mm هامش أيمن فارغ)
+            مُصمم خصيصاً لطابعات الإيصالات الحرارية مقاس 58mm و 57mm (مع حجز {settings.rightBlankMarginMm}mm هامش أيمن فارغ)
           </div>
         </div>
       </footer>

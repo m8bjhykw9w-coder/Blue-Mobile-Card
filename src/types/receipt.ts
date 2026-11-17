@@ -52,10 +52,10 @@ export interface ReceiptSettings {
   customLogoDataUrl: string | null;
   showLogo: boolean;
   paperWidthMm: PaperWidthOption;
-  rightBlankMarginMm: number; // Default: 15mm
+  rightBlankMarginMm: number; // Default: 18mm
   fontSizeScale: ReceiptFontSizeScale;
   fontFamily: ReceiptFontFamily;
   thankYouMessage: string;
   exportDpi: 203 | 300; // 203 DPI (standard 8 dots/mm thermal) or 300 DPI (high-res thermal)
-  showCalibrationGuidesOnScreen: boolean; // Screen-only visual verification guide for the 15mm blank margin
+  showCalibrationGuidesOnScreen: boolean; // Screen-only visual verification guide for the right blank margin
 }

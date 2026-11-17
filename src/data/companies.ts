@@ -130,7 +130,7 @@ export const DEFAULT_SETTINGS: ReceiptSettings = {
   customLogoDataUrl: null,
   showLogo: true,
   paperWidthMm: 58,
-  rightBlankMarginMm: 15,
+  rightBlankMarginMm: 18,
   fontSizeScale: 'md',
   fontFamily: 'Cairo',
   thankYouMessage: 'شكراً لتعاملكم معنا',

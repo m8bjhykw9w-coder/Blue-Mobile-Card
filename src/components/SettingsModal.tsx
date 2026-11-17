@@ -124,7 +124,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Modal Body */}
         <div className="p-5 overflow-y-auto space-y-6 text-right">
-          {/* 1. Physical Paper & Mandatory 15mm Offset Section */}
+          {/* 1. Physical Paper & Mandatory 18mm Offset Section */}
           <section className="rounded-xl border border-blue-200/80 bg-blue-50/40 p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-[#0066CC]">
@@ -168,19 +168,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* Right Blank Margin (Default 15mm) */}
+              {/* Right Blank Margin (Default 18mm) */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-bold text-slate-700">
                     الهامش الأيمن الفارغ (Right Blank Space)
                   </label>
-                  {settings.rightBlankMarginMm !== 15 && (
+                  {settings.rightBlankMarginMm !== 18 && (
                     <button
                       type="button"
-                      onClick={() => handleFieldChange('rightBlankMarginMm', 15)}
+                      onClick={() => handleFieldChange('rightBlankMarginMm', 18)}
                       className="text-[11px] font-bold text-[#0066CC] hover:underline cursor-pointer"
                     >
-                      إعادة لـ 15mm
+                      إعادة لـ 18mm
                     </button>
                   )}
                 </div>

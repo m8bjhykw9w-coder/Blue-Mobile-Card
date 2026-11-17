@@ -60,10 +60,6 @@ export const ThermalReceiptView: React.FC<ThermalReceiptViewProps> = ({ receipt,
             {prefix && <div dir="ltr" style={{...small,fontWeight:800}}>‎*{prefix}*<span dir="rtl">رقم الكرت</span>#</div>}
             <div dir="ltr" style={{border:'0.3mm solid #000',borderRadius:'1.6mm',padding:'1.5mm 0.5mm',marginTop:'1mm',fontFamily:'monospace',fontWeight:800,fontSize:`${instructionSize}mm`,whiteSpace:'pre',lineHeight:1.3}}>{instruction}</div>
             <div style={separator}/>
-            <div aria-hidden="true" style={{fontSize:'5mm',lineHeight:1}}>♡</div>
-            <div style={{fontSize:`${3*scale}mm`,fontWeight:900,lineHeight:1.8,marginTop:'0.7mm'}}>شكراً لاختياركم خدماتنا</div>
-            <div style={{...small,marginTop:'1mm'}}>يرجى الاحتفاظ بهذا الإيصال حتى إتمام عملية التعبئة.</div>
-            <div style={{...small,borderTop:'0.2mm solid #000',marginTop:'1mm',paddingTop:'1mm'}}>يرجى التأكد من الرقم قبل الاستخدام.</div>
             {(settings.storeName || settings.storeAddress || settings.thankYouMessage) && <div style={{...small,borderTop:'0.2mm dashed #000',marginTop:'1mm',paddingTop:'1mm'}}><div dir="auto">{settings.storeName}</div><div>{settings.storeAddress}</div><div>{settings.thankYouMessage}</div></div>}
           </div>
         </div>
